@@ -1,11 +1,11 @@
-
 const express = require('express');
 const router = express.Router();
-const blogController = require('../controllers/blogController'); 
+const blogController = require('../controllers/blogController');
+const auth = require('../middleware/auth');
 
-router.post('/', blogController.addBlog);
+router.post('/', auth, blogController.addBlog);
 router.get('/', blogController.getAllBlogs);
-router.delete('/:id', blogController.deleteBlog);
-router.put('/:id', blogController.updateBlog);
+router.delete('/:id', auth, blogController.deleteBlog);
+router.put('/:id', auth, blogController.updateBlog);
 
 module.exports = router;
