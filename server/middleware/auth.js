@@ -2,16 +2,12 @@ require('dotenv').config();
 const jwt = require('jsonwebtoken');
 
 const authMiddleware = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
+  // Check if the token is in the cookies
+  const token = req.cookies.token;
+
+  if (!token) {
     console.error('No token provided');
     return res.status(401).json({ error: 'No token provided' });
-  }
-
-  const token = authHeader.split(' ')[1];
-  if (!token) {
-    console.error('Token missing');
-    return res.status(401).json({ error: 'Token missing' });
   }
 
   console.log('Token:', token);

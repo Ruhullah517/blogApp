@@ -13,10 +13,9 @@ exports.signup = async (req, res) => {
 
         if (!username || !email || !password) {
             console.log('Missing email or password');
-            return res.status(400).json({ error: 'Username,Email and password are required' });
+            return res.status(400).json({ error: 'Username, Email, and password are required' });
         }
 
-        // Check if the username already exists
         const existingUsername = await User.findOne({ username });
         if (existingUsername) {
             return res.status(400).send({ error: 'Username already exists' });
@@ -28,7 +27,7 @@ exports.signup = async (req, res) => {
         }
 
         const hashedPassword = await bcrypt.hash(password, 12);
-        const newUser = new User({username, email, password: hashedPassword });
+        const newUser = new User({ username, email, password: hashedPassword });
 
         await newUser.save();
         console.log('User created successfully:', newUser);
@@ -41,32 +40,39 @@ exports.signup = async (req, res) => {
 };
 
 exports.login = async (req, res) => {
-
-
     const { email, password } = req.body;
     try {
-        console.log('Login request received:', { email, password });
-
-        const user = await User.findOne({ email });
-        if (!user) {
-            console.log('User not found:', email);
-            return res.status(400).json({ error: 'Invalid credentials' });
-        }
-
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
-            console.log('Invalid password for user:', email);
-            return res.status(400).json({ error: 'Invalid credentials' });
-        }
-
-        const payload = { userId: user._id };
-        const token = jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: '4h' });
-
-        console.log('User logged in successfully:', email, token);
-
-        res.json({ token });
+      const user = await User.findOne({ email });
+      if (!user) return res.status(400).json({ error: 'Invalid credentials' });
+  
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) return res.status(400).json({ error: 'Invalid credentials' });
+  
+      const payload = { userId: user._id };
+      const token = jwt.sign(payload, process.env.SECRET_KEY, { expiresIn: '4h' });
+  
+      res.cookie('token', token, { httpOnly: true, secure: process.env.NODE_ENV === 'production' });
+      res.json({ message: 'Logged in successfully' });
     } catch (error) {
-        console.error('Error logging in:', error.message);
-        res.status(500).json({ error: 'Server error' });
+      res.status(500).json({ error: 'Server error' });
     }
-};
+  };
+
+  exports.checkAuth = (req, res) => {
+    const token = req.cookies.token;
+    if (!token) return res.json({ isAuthenticated: false });
+  
+    try {
+      const decoded = jwt.verify(token, secret);
+      res.json({ isAuthenticated: true, user: decoded.userId });
+    } catch (error) {
+      res.json({ isAuthenticated: false });
+    }
+  };
+
+  exports.logout = (req, res) => {
+    console.log('Inside logout');
+    res.clearCookie('token');
+    res.json({ message: 'Logged out successfully' });
+  };
+  

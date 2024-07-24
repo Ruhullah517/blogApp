@@ -1,11 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const BlogItem = ({ blog, deleteBlog, updateBlog }) => {
+const BlogItem = ({ blog, deleteBlog, updateBlog, token }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [title, setTitle] = useState(blog.title);
   const [content, setContent] = useState(blog.content);
-  const token = localStorage.getItem('token');
 
   const handleUpdate = async () => {
     try {
@@ -13,10 +12,8 @@ const BlogItem = ({ blog, deleteBlog, updateBlog }) => {
         `http://localhost:5000/api/blogs/${blog._id}`,
         { title, content },
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          }
+          withCredentials: true,
+          'Content-Type': 'application/json',
         }
       );
       setIsEditing(false);
@@ -28,18 +25,20 @@ const BlogItem = ({ blog, deleteBlog, updateBlog }) => {
 
   const handleDelete = async () => {
     try {
-        console.log('Attempting to delete blog with ID:', blog._id);
-        await deleteBlog(blog._id); // Use the function passed from BlogList
-        console.log('Blog deleted successfully');
+      // console.log('Attempting to delete blog with ID:', blog._id);
+      // await axios.delete(`http://localhost:5000/api/blogs/${blog._id}`, {
+      //   withCredentials: true,
+      // });
+      deleteBlog(blog._id);
     } catch (error) {
-        console.error('Failed to delete blog', error.response?.data || error.message);
+      console.error('Failed to delete blog', error);
     }
-};
+  };
 
   return (
     <div className="blog-item">
       {isEditing ? (
-        <form onSubmit={(e) => { e.preventDefault(); handleUpdate(); }}>
+        <form>
           <input
             type="text"
             value={title}
@@ -48,9 +47,9 @@ const BlogItem = ({ blog, deleteBlog, updateBlog }) => {
           <textarea
             value={content}
             onChange={(e) => setContent(e.target.value)}
-          ></textarea>
-          <button type="button" onClick={handleUpdate}>Update</button>
-          <button type="button" onClick={() => setIsEditing(false)}>Cancel</button>
+          />
+          <button onClick={handleUpdate}>Save</button>
+          <button onClick={() => setIsEditing(false)}>Cancel</button>
         </form>
       ) : (
         <div>

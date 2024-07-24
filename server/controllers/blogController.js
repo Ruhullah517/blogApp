@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 // Add a new blog post
 exports.createBlog = async (req, res) => {
     const { title, content } = req.body;
-    const userId = req.user._id; // Ensure this is populated correctly
+    const userId = req.user._id; 
 
     console.log('Received create blog request:', { title, content, userId });
 
@@ -38,41 +38,30 @@ exports.getAllBlogs = async (req, res) => {
 // Delete a blog post by ID
 exports.deleteBlog = async (req, res) => {
     const { id } = req.params;
-
-    console.log('Delete request received for ID:', id);
+    console.log('Received delete request for ID:', id); // Add this line
 
     try {
-        // Validate the ID
         if (!mongoose.Types.ObjectId.isValid(id)) {
             return res.status(400).json({ error: 'Invalid blog ID' });
         }
 
-        // Find the blog post
         const blog = await Blog.findById(id);
-
         if (!blog) {
             return res.status(404).json({ error: 'Blog post not found' });
         }
 
-        // Debug: Log user IDs for comparison
-        console.log('Blog user ID:', blog.user.toString());
-        console.log('Request user ID:', req.user._id.toString());
-
-        // Check authorization
         if (blog.user.toString() !== req.user._id.toString()) {
             return res.status(403).json({ error: 'Not authorized' });
         }
 
-        // Delete the blog post
         await Blog.findByIdAndDelete(id);
-        console.log('Blog post deleted successfully');
-
         res.status(200).json({ message: 'Blog post deleted' });
     } catch (error) {
         console.error('Error deleting blog:', error);
         res.status(500).json({ error: 'An error occurred while deleting the blog post' });
     }
 };
+
 
 
 // Update a blog post by ID

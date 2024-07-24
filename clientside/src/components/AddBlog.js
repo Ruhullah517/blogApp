@@ -15,13 +15,6 @@ const AddBlog = ({ addBlog }) => {
     if (isSubmitting) return;
 
     setIsSubmitting(true);
-    const token = localStorage.getItem('token');
-    if (!token) {
-      console.error('No token found');
-      setError('No token found');
-      setIsSubmitting(false);
-      return;
-    }
 
     try {
       console.log('Submitting blog:', { title, content });
@@ -31,8 +24,8 @@ const AddBlog = ({ addBlog }) => {
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${token}`,
-          }
+          },
+          withCredentials: true // Include this if using cookies for authentication
         }
       );
       console.log('Blog created:', response.data);
